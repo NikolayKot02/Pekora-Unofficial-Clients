@@ -1,9 +1,10 @@
-# Fome and 2x2's Carbon Apks
-<img width="1600" height="491" alt="logo" src="https://github.com/user-attachments/assets/5dab41f7-2cce-4f2e-9f4a-97cd59872b65" />
+# Fome's Korone 
+<img width="1600" height="491" alt="logo" src="https://github.com/user-attachments/assets/ee80cca7-303e-4bdd-8fc7-3fd5a917cd28" />
 
 [<img width="1600" height="532" alt="Picsart_26-03-31_10-27-43-016" src="https://github.com/user-attachments/assets/0d27c8d0-a2d0-4c07-baa3-66ef83f2742a" />
 ](https://discord.gg/GHhECtnc3a)[<img width="1600" height="535" alt="Picsart_26-03-31_10-30-00-822" src="https://github.com/user-attachments/assets/9f3d7579-bbb0-43cd-85bb-9b5087ef3a33" />
 ](https://github.com/nullz2/Pekora-Unofficial-Clients/releases)
+<img width="1600" height="491" alt="image" src="https://github.com/user-attachments/assets/ee80cca7-303e-4bdd-8fc7-3fd5a917cd28" />
 
  # NOTE
 
