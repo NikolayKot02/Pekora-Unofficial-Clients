@@ -13,7 +13,6 @@ jobs:
 
     strategy:
       matrix:
-        # Автоматически собираем все четыре папки за один запуск
         version: [ "2017", "2018", "2020", "2021" ]
       fail-fast: false 
 
@@ -27,9 +26,14 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    # Устанавливаем официальный Android SDK на сервер
+    # Настраиваем Android SDK базово
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
+
+    # Скачиваем платформу API 34, чтобы физически получить android.jar
+    - name: Install Android Platform Tools
+      run: |
+        sdkmanager "platforms;android-34"
 
     - name: Download and Setup Apktool
       run: |
@@ -40,15 +44,16 @@ jobs:
         chmod +x apktool_bin/apktool
         echo "$GITHUB_WORKSPACE/apktool_bin" >> $GITHUB_PATH
 
-    # Безопасно вытаскиваем официальный android.jar из установленного SDK и скармливаем его Apktool
+    # Регистрируем скачанный android.jar во фреймворках Apktool
     - name: Setup Android Framework for Apktool
       run: |
-        ANDROID_JAR=$(find $ANDROID_HOME/platforms/ -name "android.jar" | head -n 1)
+        ANDROID_JAR="$ANDROID_HOME/platforms/android-34/android.jar"
         if [ -f "$ANDROID_JAR" ]; then
-          echo "Найден официальный системный файл: $ANDROID_JAR"
+          echo "Регистрируем системный фреймворк: $ANDROID_JAR"
           apktool if "$ANDROID_JAR"
         else
-          echo "Системный android.jar не найден, сборка может упасть из-за ресурсов."
+          echo "Критическая ошибка: файл android.jar не найден по пути $ANDROID_JAR"
+          exit 1
         fi
 
     - name: Build APK for Version ${{ matrix.version }}
@@ -56,14 +61,13 @@ jobs:
         if [ -d "${{ matrix.version }}" ]; then
           cd "${{ matrix.version }}"
           
-          # Автоматически исправляем несовместимость версий apktool, переименовывая конфигурацию
           if [ -f "apktool.json" ]; then
             echo "Найдена старая конфигурация apktool.json в папке ${{ matrix.version }}. Переименовываем в apktool.yml..."
             mv apktool.json apktool.yml
           fi
           
           cd ..
-          # Компилируем ресурсы через aapt2 с использованием зарегистрированного фреймворка
+          # Собираем APK с использованием зарегистрированного фреймворка
           apktool b --use-aapt2 -f "${{ matrix.version }}" -o "Korone_${{ matrix.version }}_unsigned.apk"
         else
           echo "Папка ${{ matrix.version }} не найдена, пропускаем."
