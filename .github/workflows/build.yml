@@ -1,0 +1,51 @@
+name: Build All APKs with Apktool
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        # Перечисляем все твои папки с приложениями
+        version: [ "2017", "2018", "2020", "2021" ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Java JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Download and Setup Apktool
+      run: |
+        mkdir -p apktool_bin
+        curl -L https://github.com/iBotPeaches/Apktool/releases/download/v2.10.0/apktool_2.10.0.jar -o apktool_bin/apktool.jar
+        echo '#!/bin/bash' > apktool_bin/apktool
+        echo 'exec java -jar "$(dirname "$0")/apktool.jar" "$@"' >> apktool_bin/apktool
+        chmod +x apktool_bin/apktool
+        echo "$GITHUB_WORKSPACE/apktool_bin" >> $GITHUB_PATH
+
+    - name: Build APK for Version ${{ matrix.version }}
+      run: |
+        # Проверяем, существует ли папка, чтобы избежать ошибок
+        if [ -d "${{ matrix.version }}" ]; then
+          apktool b "${{ matrix.version }}" -o "Korone_${{ matrix.version }}_unsigned.apk"
+        else
+          echo "Папка ${{ matrix.version }} не найдена, пропускаем."
+        fi
+
+    - name: Upload Unsigned APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: Korone-${{ matrix.version }}-Unsigned-APK
+        path: Korone_${{ matrix.version }}_unsigned.apk
