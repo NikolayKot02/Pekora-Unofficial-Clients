@@ -4,35 +4,33 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Имя тега (например, v1.0.0)'
+        description: 'Tag name (e.g., v1.0.0)'
         required: true
         default: 'v1.0.0'
       release_title:
-        description: 'Заголовок релиза (Title)'
+        description: 'Release title'
         required: true
-        default: 'Релиз v1.0.0'
+        default: 'Release v1.0.0'
       generate_notes:
-        description: 'Сгенерировать описание автоматически? (Галочка)'
+        description: 'Generate release notes automatically?'
         type: boolean
         required: false
         default: true
       release_body:
-        description: 'Собственное описание (если галочка выключена)'
+        description: 'Custom description (if checkbox is disabled)'
         required: false
-        default: 'Ручной релиз собранных файлов.'
+        default: 'Manual release of compiled files.'
 
 jobs:
   create_release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Нужно для создания релиза и загрузки файлов
+      contents: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 1. Скачиваем ВСЕ APK из последней успешной сборки build.yml
-      # Благодаря маске build-output-* скрипт заберет файлы всех версий из матрицы
       - name: Download all artifacts from Build workflow
         uses: dawidd6/action-download-artifact@v6
         with:
@@ -43,13 +41,11 @@ jobs:
           path: ./artifacts
           name_is_regexp: true
 
-      # 2. Создаем GitHub Релиз и прикрепляем скачанные файлы
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.tag_name }}
           name: ${{ github.event.inputs.release_title }}
-          # Если галочка generate_notes активна, встроенная генерация GitHub перекроет это поле своим списком коммитов
           body: ${{ github.event.inputs.generate_notes == 'true' && '' || github.event.inputs.release_body }}
           generate_release_notes: ${{ github.event.inputs.generate_notes }}
           draft: false
