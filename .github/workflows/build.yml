@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        # Перечисляем все твои папки с приложениями
+        # Перечисляем все папки с приложениями в репозитории
         version: [ "2017", "2018", "2020", "2021" ]
 
     steps:
@@ -37,8 +37,17 @@ jobs:
 
     - name: Build APK for Version ${{ matrix.version }}
       run: |
-        # Проверяем, существует ли папка, чтобы избежать ошибок
         if [ -d "${{ matrix.version }}" ]; then
+          cd "${{ matrix.version }}"
+          
+          # Исправляем ошибку brut.directory.PathNotExist: автоматически переименовываем json в yml
+          if [ -f "apktool.json" ]; then
+            echo "Найдена старая конфигурация apktool.json в папе ${{ matrix.version }}. Переименовываем в apktool.yml..."
+            mv apktool.json apktool.yml
+          fi
+          
+          cd ..
+          # Запускаем сборку через обновленный Apktool
           apktool b "${{ matrix.version }}" -o "Korone_${{ matrix.version }}_unsigned.apk"
         else
           echo "Папка ${{ matrix.version }} не найдена, пропускаем."
