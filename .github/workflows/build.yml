@@ -81,3 +81,9 @@ jobs:
         with:
           name: Korone-${{ matrix.version }}-Unsigned-APK
           path: Korone_${{ matrix.version }}.apk
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: build/libs/ 
