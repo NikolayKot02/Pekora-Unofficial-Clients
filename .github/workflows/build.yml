@@ -87,9 +87,9 @@ jobs:
           
             curl -L https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar -o uber-apk-signer.jar
           
-            java -jar uber-apk-signer.jar --apks Korone_${{ matrix.version }}_unsigned.apk --ks my-release-key.jks --ksAlias my-alias --ksPass mypassword --keyPass mypassword --allowResign
+            java -jar uber-apk-signer.jar --apks Korone_${{ matrix.version }}_unsigned.apk --ks my-release-key.jks --ksAlias my-alias --ksPass mypassword --allowResign --nextSigner
           
-            mv Korone_${{ matrix.version }}_unsigned-aligned-debugSigned.apk Korone_${{ matrix.version }}_signed.apk 2>/dev/null || mv Korone_${{ matrix.version }}_unsigned-aligned-signed.apk Korone_${{ matrix.version }}_signed.apk
+            mv Korone_${{ matrix.version }}_unsigned-aligned-signed.apk Korone_${{ matrix.version }}_signed.apk
           fi
 
       - name: Upload Signed APK
