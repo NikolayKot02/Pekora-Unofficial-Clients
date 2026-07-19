@@ -13,8 +13,9 @@ jobs:
 
     strategy:
       matrix:
+        # Перечисляем все папки с приложениями в твоем репозитории
         version: [ "2017", "2018", "2020", "2021" ]
-      # false не даст одной упавшей сборке отменить остальные три
+      # false гарантирует, что если одна версия упадет, остальные три все равно соберутся
       fail-fast: false 
 
     steps:
@@ -32,7 +33,7 @@ jobs:
         mkdir -p apktool_bin
         curl -L https://github.com/iBotPeaches/Apktool/releases/download/v2.10.0/apktool_2.10.0.jar -o apktool_bin/apktool.jar
         echo '#!/bin/bash' > apktool_bin/apktool
-        # Выделяем до 3 ГБ оперативной памяти под Java, чтобы избежать Out of Memory
+        # Выделяем до 3 ГБ оперативной памяти под Java, чтобы тяжелые версии не падали по памяти
         echo 'exec java -Xmx3G -jar "$(dirname "$0")/apktool.jar" "$@"' >> apktool_bin/apktool
         chmod +x apktool_bin/apktool
         echo "$GITHUB_WORKSPACE/apktool_bin" >> $GITHUB_PATH
@@ -42,14 +43,15 @@ jobs:
         if [ -d "${{ matrix.version }}" ]; then
           cd "${{ matrix.version }}"
           
+          # Автоматически переименовываем старый apktool.json в apktool.yml для совместимости
           if [ -f "apktool.json" ]; then
             echo "Найдена старая конфигурация apktool.json в папке ${{ matrix.version }}. Переименовываем в apktool.yml..."
             mv apktool.json apktool.yml
           fi
           
           cd ..
-          # --skip-changes ускоряет сборку и экономит память сервера
-          apktool b --use-aapt2 --skip-changes "${{ matrix.version }}" -o "Korone_${{ matrix.version }}_unsigned.apk"
+          # Используем --use-aapt2 для линковки ресурсов и правильный флаг -f для сборки без лишних проверок
+          apktool b --use-aapt2 -f "${{ matrix.version }}" -o "Korone_${{ matrix.version }}_unsigned.apk"
         else
           echo "Папка ${{ matrix.version }} не найдена, пропускаем."
         fi
