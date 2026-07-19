@@ -71,19 +71,25 @@ jobs:
             rm -f apktool.json
           
             cd ..
-            apktool b "${{ matrix.version }}" -o "Korone_${{ matrix.version }}.apk"
+            
+            # Изменение: создаем временную папку для сбора артефактов
+            mkdir -p out_artifacts
+            apktool b "${{ matrix.version }}" -o "out_artifacts/Korone_${{ matrix.version }}.apk"
           else
             echo "Directory ${{ matrix.version }} not found, skipping."
           fi
 
+      # Этот шаг загружает каждый APK отдельно (как у тебя и было)
       - name: Upload Unsigned APK
         uses: actions/upload-artifact@v4
         with:
           name: Korone-${{ matrix.version }}-Unsigned-APK
-          path: Korone_${{ matrix.version }}.apk
+          path: out_artifacts/Korone_${{ matrix.version }}.apk
 
-      - name: Upload Build Artifacts
+      # ИСПРАВЛЕНИЕ: Этот шаг добавляет файлы из матрицы в один общий артефакт build-output
+      - name: Upload Build Artifacts for Release
         uses: actions/upload-artifact@v4
         with:
           name: build-output
-          path: build/libs/ 
+          path: out_artifacts/
+          if-no-files-found: error
