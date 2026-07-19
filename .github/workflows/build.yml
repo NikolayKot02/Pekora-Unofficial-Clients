@@ -45,11 +45,8 @@ jobs:
         if [ -d "${{ matrix.version }}" ]; then
           cd "${{ matrix.version }}"
           
-          # Удаляем старые файлы конфигурации, если они остались от прошлых запусков
           rm -f apktool.yml
           
-          # Генерируем ЧИСТЫЙ и правильный apktool.yml для версии 2.10.0,
-          # сохраняя при этом важную структуру ресурсов оригинального APK.
           echo "version: 2.10.0" > apktool.yml
           echo "apkFileName: Korone_${{ matrix.version }}_unsigned.apk" >> apktool.yml
           echo "isFrameworkApk: false" >> apktool.yml
@@ -71,12 +68,9 @@ jobs:
           echo "- jpg" >> apktool.yml
           echo "- assets/fingerprint.txt" >> apktool.yml
           
-          # Избавляемся от старого .json, чтобы Apktool читал только наш новый .yml
           rm -f apktool.json
           
           cd ..
-          # Собираем стандартным aapt. Флаг --use-aapt2 возвращать НЕ нужно, 
-          # так как кастомный forcedPackageId (127) корректно обрабатывается именно в aapt1.
           apktool b "${{ matrix.version }}" -o "Korone_${{ matrix.version }}_unsigned.apk"
         else
           echo "Папка ${{ matrix.version }} не найдена, пропускаем."
