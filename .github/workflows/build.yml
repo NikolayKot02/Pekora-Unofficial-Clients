@@ -13,6 +13,7 @@ jobs:
 
     strategy:
       matrix:
+        # Автоматически собираем все четыре папки за один запуск
         version: [ "2017", "2018", "2020", "2021" ]
       fail-fast: false 
 
@@ -26,6 +27,10 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    # Устанавливаем официальный Android SDK на сервер
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+
     - name: Download and Setup Apktool
       run: |
         mkdir -p apktool_bin
@@ -35,25 +40,30 @@ jobs:
         chmod +x apktool_bin/apktool
         echo "$GITHUB_WORKSPACE/apktool_bin" >> $GITHUB_PATH
 
-    # Скачиваем официальный базовый android.jar и регистрируем его как фреймворк 1.apk
+    # Безопасно вытаскиваем официальный android.jar из установленного SDK и скармливаем его Apktool
     - name: Setup Android Framework for Apktool
       run: |
-        mkdir -p framework_tmp
-        curl -L "https://github.com/SirenianDawn/android-jar/raw/master/android-34/android.jar" -o framework_tmp/android.jar
-        apktool if framework_tmp/android.jar
+        ANDROID_JAR=$(find $ANDROID_HOME/platforms/ -name "android.jar" | head -n 1)
+        if [ -f "$ANDROID_JAR" ]; then
+          echo "Найден официальный системный файл: $ANDROID_JAR"
+          apktool if "$ANDROID_JAR"
+        else
+          echo "Системный android.jar не найден, сборка может упасть из-за ресурсов."
+        fi
 
     - name: Build APK for Version ${{ matrix.version }}
       run: |
         if [ -d "${{ matrix.version }}" ]; then
           cd "${{ matrix.version }}"
           
+          # Автоматически исправляем несовместимость версий apktool, переименовывая конфигурацию
           if [ -f "apktool.json" ]; then
             echo "Найдена старая конфигурация apktool.json в папке ${{ matrix.version }}. Переименовываем в apktool.yml..."
             mv apktool.json apktool.yml
           fi
           
           cd ..
-          # Собираем APK с использованием зарегистрированного фреймворка
+          # Компилируем ресурсы через aapt2 с использованием зарегистрированного фреймворка
           apktool b --use-aapt2 -f "${{ matrix.version }}" -o "Korone_${{ matrix.version }}_unsigned.apk"
         else
           echo "Папка ${{ matrix.version }} не найдена, пропускаем."
