@@ -107,7 +107,8 @@
             android:name="com.crashlytics.ApiKey"
             android:value="7991889011d53be5ccf9f6f42d9a1ea05a702eb7" />
         <receiver
-            android:name="com.roblox.client.pushnotification.notificationreceivers.FriendRequestReceivedNotificationReceiver">
+            android:name="com.roblox.client.pushnotification.notificationreceivers.FriendRequestReceivedNotificationReceiver"
+            android:exported="false">
             <intent-filter>
                 <action
                     android:name="friend_request_received" />
@@ -120,7 +121,8 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name="com.roblox.client.pushnotification.notificationreceivers.FriendRequestAcceptedNotificationReceiver">
+            android:name="com.roblox.client.pushnotification.notificationreceivers.FriendRequestAcceptedNotificationReceiver"
+            android:exported="false">
             <intent-filter>
                 <action
                     android:name="friend_request_accepted" />
@@ -129,7 +131,8 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name="com.roblox.client.pushnotification.notificationreceivers.ChatMessageNotificationReceiver">
+            android:name="com.roblox.client.pushnotification.notificationreceivers.ChatMessageNotificationReceiver"
+            android:exported="false">
             <intent-filter>
                 <action
                     android:name="chat_message_received" />
@@ -138,7 +141,8 @@
             </intent-filter>
         </receiver>
         <receiver
-            android:name="com.roblox.client.pushnotification.notificationreceivers.PrivateMessageReceivedNotificationReceiver">
+            android:name="com.roblox.client.pushnotification.notificationreceivers.PrivateMessageReceivedNotificationReceiver"
+            android:exported="false">
             <intent-filter>
                 <action
                     android:name="private_message_received" />
@@ -168,7 +172,8 @@
             android:label="Korone (2017)"
             android:name="com.roblox.client.ActivitySplash"
             android:launchMode="singleTop"
-            android:windowSoftInputMode="adjustPan">
+            android:windowSoftInputMode="adjustPan"
+            android:exported="true">
             <intent-filter>
                 <category
                     android:name="android.intent.category.LAUNCHER" />
@@ -180,7 +185,8 @@
         </activity>
         <activity
             android:name="com.roblox.client.ActivityProtocolLaunch"
-            android:noHistory="true">
+            android:noHistory="true"
+            android:exported="true">
             <intent-filter>
                 <action
                     android:name="android.intent.action.VIEW" />
@@ -199,7 +205,8 @@
             android:launchMode="singleTask"
             android:configChanges="orientation|screenSize"
             android:alwaysRetainTaskState="true"
-            android:windowSoftInputMode="adjustPan">
+            android:windowSoftInputMode="adjustPan"
+            android:exported="true">
             <intent-filter>
                 <action
                     android:name="android.intent.action.MAIN" />
@@ -214,7 +221,8 @@
             android:process=":glview"
             android:launchMode="standard"
             android:configChanges="orientation|screenSize"
-            android:windowSoftInputMode="adjustResize">
+            android:windowSoftInputMode="adjustResize"
+            android:exported="true">
             <intent-filter>
                 <action
                     android:name="android.intent.action.MAIN" />
@@ -227,7 +235,8 @@
             android:label="Korone (2017)"
             android:name="com.roblox.client.ActivityCurlTest"
             android:launchMode="singleTop"
-            android:screenOrientation="sensorLandscape">
+            android:screenOrientation="sensorLandscape"
+            android:exported="true">
             <intent-filter>
                 <action
                     android:name="android.intent.action.MAIN" />
