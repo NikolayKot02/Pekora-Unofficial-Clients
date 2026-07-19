@@ -1,0 +1,46 @@
+name: Create Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Имя тега (например, v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+      release_title:
+        description: 'Заголовок релиза (Title)'
+        required: true
+        default: 'Релиз v1.0.0'
+      release_body:
+        description: 'Описание изменений (Changelog)'
+        required: false
+        default: 'Ручной релиз собранных файлов.'
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Требуется для создания релиза и загрузки файлов
+      actions: read   # Требуется для работы с артефактами других воркфлоу
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 1. Скачиваем артефакты из последней успешной сборки скрипта build.yml
+      - name: Download artifacts from Build workflow
+        uses: actions/download-artifact@v4
+        with:
+          # Замени на имя артефакта, которое указано в твоем upload-artifact внутри build.yml (например, build-output)
+          name: build-output 
+          path: ./artifacts
+
+      # 2. Создаем релиз на GitHub и прикрепляем все скачанные файлы
+      - name: Create GitHub Release and Upload Assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.event.inputs.tag_name }}" ./artifacts/* \
+            --title "${{ github.event.inputs.release_title }}" \
+            --notes "${{ github.event.inputs.release_body }}" \
+            --target "${{ github.sha }}"
