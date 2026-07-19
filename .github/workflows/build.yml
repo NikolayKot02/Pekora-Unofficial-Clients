@@ -48,7 +48,7 @@ jobs:
             rm -f apktool.yml
           
             echo "version: 2.10.0" > apktool.yml
-            echo "apkFileName: Korone_${{ matrix.version }}_unsigned.apk" >> apktool.yml
+            echo "apkFileName: Korone_${{ matrix.version }}.apk" >> apktool.yml
             echo "isFrameworkApk: false" >> apktool.yml
             echo "isSharedLibrary: false" >> apktool.yml
             echo "sparseResources: false" >> apktool.yml
@@ -71,7 +71,7 @@ jobs:
             rm -f apktool.json
           
             cd ..
-            apktool b "${{ matrix.version }}" -o "Korone_${{ matrix.version }}_unsigned.apk"
+            apktool b "${{ matrix.version }}" -o "Korone_${{ matrix.version }}.apk"
           else
             echo "Directory ${{ matrix.version }} not found, skipping."
           fi
