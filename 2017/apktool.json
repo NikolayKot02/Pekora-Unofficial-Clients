@@ -36,6 +36,6 @@
   "isFrameworkApk": false,
   "sdkInfo": {
     "minSdkVersion": "16",
-    "targetSdkVersion": "24"
+    "targetSdkVersion": "30"
   }
 }
