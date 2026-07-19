@@ -38,7 +38,7 @@ jobs:
     - name: Setup Android Framework for Apktool
       run: |
         apktool empty-framework-dir
-        echo "Фреймворк очищен"
+        echo "Framework cleared"
 
     - name: Build APK for Version ${{ matrix.version }}
       run: |
@@ -73,7 +73,7 @@ jobs:
           cd ..
           apktool b "${{ matrix.version }}" -o "Korone_${{ matrix.version }}_unsigned.apk"
         else
-          echo "Папка ${{ matrix.version }} не найдена, пропускаем."
+          echo "Directory ${{ matrix.version }} not found, skipping."
         fi
 
     - name: Upload Unsigned APK
