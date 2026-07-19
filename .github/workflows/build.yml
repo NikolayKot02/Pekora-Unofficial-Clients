@@ -35,29 +35,49 @@ jobs:
         chmod +x apktool_bin/apktool
         echo "$GITHUB_WORKSPACE/apktool_bin" >> $GITHUB_PATH
 
-    # Инициализация встроенного фреймворка
     - name: Setup Android Framework for Apktool
       run: |
         apktool empty-framework-dir
-        mkdir -p dummy_dir
-        echo "version: 2.10.0" > dummy_dir/apktool.yml
-        apktool b dummy_dir || true
-        rm -rf dummy_dir
-        echo "Встроенный фреймворк Apktool успешно инициализирован!"
+        echo "Фреймворк очищен"
 
     - name: Build APK for Version ${{ matrix.version }}
       run: |
         if [ -d "${{ matrix.version }}" ]; then
           cd "${{ matrix.version }}"
           
-          if [ -f "apktool.json" ]; then
-            echo "Найдена старая конфигурация apktool.json в папке ${{ matrix.version }}. Переименовываем в apktool.yml..."
-            mv apktool.json apktool.yml
-          fi
+          # Удаляем старые файлы конфигурации, если они остались от прошлых запусков
+          rm -f apktool.yml
+          
+          # Генерируем ЧИСТЫЙ и правильный apktool.yml для версии 2.10.0,
+          # сохраняя при этом важную структуру ресурсов оригинального APK.
+          echo "version: 2.10.0" > apktool.yml
+          echo "apkFileName: Korone_${{ matrix.version }}_unsigned.apk" >> apktool.yml
+          echo "isFrameworkApk: false" >> apktool.yml
+          echo "isSharedLibrary: false" >> apktool.yml
+          echo "sparseResources: false" >> apktool.yml
+          echo "compactEntries: false" >> apktool.yml
+          echo "compressionType: false" >> apktool.yml
+          echo "packageInfo:" >> apktool.yml
+          echo "  forcedPackageId: '127'" >> apktool.yml
+          echo "sdkInfo:" >> apktool.yml
+          echo "  minSdkVersion: '16'" >> apktool.yml
+          echo "  targetSdkVersion: '30'" >> apktool.yml
+          echo "usesFramework:" >> apktool.yml
+          echo "  ids:" >> apktool.yml
+          echo "  - 1" >> apktool.yml
+          echo "doNotCompress:" >> apktool.yml
+          echo "- resources.arsc" >> apktool.yml
+          echo "- png" >> apktool.yml
+          echo "- jpg" >> apktool.yml
+          echo "- assets/fingerprint.txt" >> apktool.yml
+          
+          # Избавляемся от старого .json, чтобы Apktool читал только наш новый .yml
+          rm -f apktool.json
           
           cd ..
-          # Собираем APK с использованием встроенного фреймворка и aapt2
-          apktool b --use-aapt2 "${{ matrix.version }}" -o "Korone_${{ matrix.version }}_unsigned.apk"
+          # Собираем стандартным aapt. Флаг --use-aapt2 возвращать НЕ нужно, 
+          # так как кастомный forcedPackageId (127) корректно обрабатывается именно в aapt1.
+          apktool b "${{ matrix.version }}" -o "Korone_${{ matrix.version }}_unsigned.apk"
         else
           echo "Папка ${{ matrix.version }} не найдена, пропускаем."
         fi
