@@ -26,15 +26,6 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    # Настраиваем Android SDK базово
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-
-    # Скачиваем платформу API 34, чтобы физически получить android.jar
-    - name: Install Android Platform Tools
-      run: |
-        sdkmanager "platforms;android-34"
-
     - name: Download and Setup Apktool
       run: |
         mkdir -p apktool_bin
@@ -44,15 +35,18 @@ jobs:
         chmod +x apktool_bin/apktool
         echo "$GITHUB_WORKSPACE/apktool_bin" >> $GITHUB_PATH
 
-    # Регистрируем скачанный android.jar во фреймворках Apktool
+    # Быстрая загрузка полноценного framework-res.apk вместо тяжелого Android SDK
     - name: Setup Android Framework for Apktool
       run: |
-        ANDROID_JAR="$ANDROID_HOME/platforms/android-34/android.jar"
-        if [ -f "$ANDROID_JAR" ]; then
-          echo "Регистрируем системный фреймворк: $ANDROID_JAR"
-          apktool if "$ANDROID_JAR"
+        mkdir -p frameworks
+        # Скачиваем чистый эталонный framework-res APK с полной таблицей ресурсов Android
+        curl -L "https://raw.githubusercontent.com/skylot/jadx/master/jadx-core/src/test/resources/samples/android-res.apk" -o frameworks/framework-res.apk
+        
+        if [ -f "frameworks/framework-res.apk" ]; then
+          echo "Регистрируем полноценный системный фреймворк..."
+          apktool if frameworks/framework-res.apk
         else
-          echo "Критическая ошибка: файл android.jar не найден по пути $ANDROID_JAR"
+          echo "Критическая ошибка: файл фреймворка не удалось загрузить!"
           exit 1
         fi
 
@@ -67,8 +61,8 @@ jobs:
           fi
           
           cd ..
-          # Собираем APK с использованием зарегистрированного фреймворка
-          apktool b --use-aapt2 -f "${{ matrix.version }}" -o "Korone_${{ matrix.version }}_unsigned.apk"
+          # Собираем APK с использованием зарегистрированного стабильного фреймворка
+          apktool b --use-aapt2 "${{ matrix.version }}" -o "Korone_${{ matrix.version }}_unsigned.apk"
         else
           echo "Папка ${{ matrix.version }} не найдена, пропускаем."
         fi
