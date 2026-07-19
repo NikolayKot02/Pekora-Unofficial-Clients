@@ -11,8 +11,13 @@ on:
         description: 'Заголовок релиза (Title)'
         required: true
         default: 'Релиз v1.0.0'
+      generate_notes:
+        description: 'Сгенерировать описание автоматически? (Галочка)'
+        type: boolean
+        required: false
+        default: true
       release_body:
-        description: 'Описание релиза (Чейнджлог)'
+        description: 'Собственное описание (если галочка выключена)'
         required: false
         default: 'Ручной релиз собранных файлов.'
 
@@ -26,24 +31,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 1. Скачиваем ВСЕ артефакты из последней успешной сборки, имя которых начинается на build-output-
+      # 1. Скачиваем ВСЕ APK из последней успешной сборки build.yml
+      # Благодаря маске build-output-* скрипт заберет файлы всех версий из матрицы
       - name: Download all artifacts from Build workflow
         uses: dawidd6/action-download-artifact@v6
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           workflow: build.yml
           workflow_conclusion: success
-          name: build-output-* # Находит build-output-2017, build-output-2018 и т.д.
-          path: ./artifacts   # Скачивает их все в одну общую папку
-          name_is_regexp: true # Включает поддержку поиска по маске *
+          name: build-output-*
+          path: ./artifacts
+          name_is_regexp: true
 
-      # 2. Создаем релиз и прикрепляем все найденные внутри папки APK-файлы
+      # 2. Создаем GitHub Релиз и прикрепляем скачанные файлы
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.tag_name }}
           name: ${{ github.event.inputs.release_title }}
-          body: ${{ github.event.inputs.release_body }}
+          # Если галочка generate_notes активна, встроенная генерация GitHub перекроет это поле своим списком коммитов
+          body: ${{ github.event.inputs.generate_notes == 'true' && '' || github.event.inputs.release_body }}
+          generate_release_notes: ${{ github.event.inputs.generate_notes }}
           draft: false
           prerelease: false
           files: ./artifacts/**/*
