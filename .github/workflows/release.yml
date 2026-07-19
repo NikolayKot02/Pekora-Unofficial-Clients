@@ -12,7 +12,7 @@ on:
         required: true
         default: 'Релиз v1.0.0'
       release_body:
-        description: 'Описание изменений (Changelog)'
+        description: 'Описание релиза (Чейнджлог)'
         required: false
         default: 'Ручной релиз собранных файлов.'
 
@@ -20,27 +20,30 @@ jobs:
   create_release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Требуется для создания релиза и загрузки файлов
-      actions: read   # Требуется для работы с артефактами других воркфлоу
+      contents: write # Нужно для создания релиза и загрузки файлов
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 1. Скачиваем артефакты из последней успешной сборки скрипта build.yml
-      - name: Download artifacts from Build workflow
-        uses: actions/download-artifact@v4
+      # 1. Скачиваем ВСЕ артефакты из последней успешной сборки, имя которых начинается на build-output-
+      - name: Download all artifacts from Build workflow
+        uses: dawidd6/action-download-artifact@v6
         with:
-          # Замени на имя артефакта, которое указано в твоем upload-artifact внутри build.yml (например, build-output)
-          name: build-output 
-          path: ./artifacts
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: build.yml
+          workflow_conclusion: success
+          name: build-output-* # Находит build-output-2017, build-output-2018 и т.д.
+          path: ./artifacts   # Скачивает их все в одну общую папку
+          name_is_regexp: true # Включает поддержку поиска по маске *
 
-      # 2. Создаем релиз на GitHub и прикрепляем все скачанные файлы
-      - name: Create GitHub Release and Upload Assets
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "${{ github.event.inputs.tag_name }}" ./artifacts/* \
-            --title "${{ github.event.inputs.release_title }}" \
-            --notes "${{ github.event.inputs.release_body }}" \
-            --target "${{ github.sha }}"
+      # 2. Создаем релиз и прикрепляем все найденные внутри папки APK-файлы
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag_name }}
+          name: ${{ github.event.inputs.release_title }}
+          body: ${{ github.event.inputs.release_body }}
+          draft: false
+          prerelease: false
+          files: ./artifacts/**/*
