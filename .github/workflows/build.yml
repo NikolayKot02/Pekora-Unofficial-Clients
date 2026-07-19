@@ -45,7 +45,7 @@ jobs:
           if [ -d "${{ matrix.version }}" ]; then
             cd "${{ matrix.version }}"
           
-            rm -f apktool.yml apktool.json
+            rm -f apktool.yml
           
             echo "version: 2.10.0" > apktool.yml
             echo "apkFileName: Korone_${{ matrix.version }}_unsigned.apk" >> apktool.yml
@@ -55,16 +55,10 @@ jobs:
             echo "compactEntries: false" >> apktool.yml
             echo "compressionType: false" >> apktool.yml
             echo "packageInfo:" >> apktool.yml
-          
-            if [ "${{ matrix.version }}" = "2017" ]; then
-              echo "  forcedPackageId: '127'" >> apktool.yml
-            else
-              echo "  forcedPackageId: null" >> apktool.yml
-            fi
-          
+            echo "  forcedPackageId: '127'" >> apktool.yml
             echo "sdkInfo:" >> apktool.yml
-            echo "  minSdkVersion: '24'" >> apktool.yml
-            echo "  targetSdkVersion: '35'" >> apktool.yml
+            echo "  minSdkVersion: '16'" >> apktool.yml
+            echo "  targetSdkVersion: '30'" >> apktool.yml
             echo "usesFramework:" >> apktool.yml
             echo "  ids:" >> apktool.yml
             echo "  - 1" >> apktool.yml
@@ -74,26 +68,16 @@ jobs:
             echo "- jpg" >> apktool.yml
             echo "- assets/fingerprint.txt" >> apktool.yml
           
+            rm -f apktool.json
+          
             cd ..
             apktool b "${{ matrix.version }}" -o "Korone_${{ matrix.version }}_unsigned.apk"
           else
             echo "Directory ${{ matrix.version }} not found, skipping."
           fi
 
-      - name: Generate Keystore and Sign APK
-        run: |
-          if [ -f "Korone_${{ matrix.version }}_unsigned.apk" ]; then
-            keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias -storepass mypassword -keypass mypassword -dname "CN=Pekora, OU=Dev, O=Pekora, L=City, S=State, C=US"
-          
-            curl -L https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar -o uber-apk-signer.jar
-          
-            java -jar uber-apk-signer.jar --apks Korone_${{ matrix.version }}_unsigned.apk --ks my-release-key.jks --ksAlias my-alias --ksPass mypassword --allowResign --nextSigner
-          
-            mv Korone_${{ matrix.version }}_unsigned-aligned-signed.apk Korone_${{ matrix.version }}_signed.apk
-          fi
-
-      - name: Upload Signed APK
+      - name: Upload Unsigned APK
         uses: actions/upload-artifact@v4
         with:
-          name: Korone-${{ matrix.version }}-Signed-APK
-          path: Korone_${{ matrix.version }}_signed.apk
+          name: Korone-${{ matrix.version }}-Unsigned-APK
+          path: Korone_${{ matrix.version }}_unsigned.apk
