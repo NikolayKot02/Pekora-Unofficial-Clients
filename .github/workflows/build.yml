@@ -26,10 +26,6 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    # Устанавливаем Android SDK, чтобы aapt2 имел доступ к стандартным ресурсам Android
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-
     - name: Download and Setup Apktool
       run: |
         mkdir -p apktool_bin
@@ -39,16 +35,12 @@ jobs:
         chmod +x apktool_bin/apktool
         echo "$GITHUB_WORKSPACE/apktool_bin" >> $GITHUB_PATH
 
-    # Регистрируем стандартный framework.apk в Apktool, чтобы он точно видел системные цвета и стили
-    - name: Install Framework Template
+    # Скачиваем официальный базовый android.jar и регистрируем его как фреймворк 1.apk
+    - name: Setup Android Framework for Apktool
       run: |
-        # Находим путь к android.jar в установленном SDK и устанавливаем его как фреймворк для Apktool
-        ANDROID_JAR=$(find $ANDROID_HOME/platforms/ -name "android.jar" | head -n 1)
-        if [ -f "$ANDROID_JAR" ]; then
-          apktool if "$ANDROID_JAR"
-        else
-          echo "Предупреждение: android.jar не найден, пробуем кастомную сборку."
-        fi
+        mkdir -p framework_tmp
+        curl -L "https://github.com/SirenianDawn/android-jar/raw/master/android-34/android.jar" -o framework_tmp/android.jar
+        apktool if framework_tmp/android.jar
 
     - name: Build APK for Version ${{ matrix.version }}
       run: |
@@ -61,7 +53,7 @@ jobs:
           fi
           
           cd ..
-          # Собираем приложение
+          # Собираем APK с использованием зарегистрированного фреймворка
           apktool b --use-aapt2 -f "${{ matrix.version }}" -o "Korone_${{ matrix.version }}_unsigned.apk"
         else
           echo "Папка ${{ matrix.version }} не найдена, пропускаем."
