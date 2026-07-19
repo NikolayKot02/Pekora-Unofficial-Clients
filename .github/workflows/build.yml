@@ -42,7 +42,6 @@ jobs:
 
       - name: Build APK for Version ${{ matrix.version }}
         run: |
-          # ИСПРАВЛЕНИЕ: Если папки нет, создаем её автоматически
           if [ ! -d "${{ matrix.version }}" ]; then
             echo "Directory ${{ matrix.version }} not found. Creating it..."
             mkdir -p "${{ matrix.version }}"
@@ -77,7 +76,6 @@ jobs:
         
           cd ..
           
-          # Создаем временную папку для сбора артефактов
           mkdir -p out_artifacts
           apktool b "${{ matrix.version }}" -o "out_artifacts/Korone_${{ matrix.version }}.apk"
 
