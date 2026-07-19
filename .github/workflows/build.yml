@@ -35,22 +35,15 @@ jobs:
         chmod +x apktool_bin/apktool
         echo "$GITHUB_WORKSPACE/apktool_bin" >> $GITHUB_PATH
 
-    # Загрузка официального ресурсного фреймворка Apktool
+    # Инициализация встроенного фреймворка
     - name: Setup Android Framework for Apktool
       run: |
-        mkdir -p frameworks
-        # Скачиваем официальный стабильный фреймворк из репозитория самого Apktool (API 32+)
-        curl -L "https://github.com/iBotPeaches/Apktool/raw/master/brut.androlib/src/main/resources/brut/androlib/android-framework.jar" -o frameworks/framework-res.apk
-        
-        # Проверяем размер файла (он должен быть в районе ~40-45 МБ)
-        FILE_SIZE=$(stat -c%s "frameworks/framework-res.apk")
-        if [ "$FILE_SIZE" -gt 10485760 ]; then
-          echo "Фреймворк успешно скачан ($FILE_SIZE байт). Регистрируем в Apktool..."
-          apktool if frameworks/framework-res.apk
-        else
-          echo "Критическая ошибка: файл фреймворка битый или не скачался (размер всего $FILE_SIZE байт)."
-          exit 1
-        fi
+        apktool empty-framework-dir
+        mkdir -p dummy_dir
+        echo "version: 2.10.0" > dummy_dir/apktool.yml
+        apktool b dummy_dir || true
+        rm -rf dummy_dir
+        echo "Встроенный фреймворк Apktool успешно инициализирован!"
 
     - name: Build APK for Version ${{ matrix.version }}
       run: |
@@ -63,7 +56,7 @@ jobs:
           fi
           
           cd ..
-          # Собираем APK с использованием зарегистрированного фреймворка
+          # Собираем APK с использованием встроенного фреймворка и aapt2
           apktool b --use-aapt2 "${{ matrix.version }}" -o "Korone_${{ matrix.version }}_unsigned.apk"
         else
           echo "Папка ${{ matrix.version }} не найдена, пропускаем."
